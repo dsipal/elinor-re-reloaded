@@ -1,34 +1,40 @@
-﻿using System.IO;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace Elinor
 {
-    class CacheTools
+    internal static class CacheTools
     {
         internal static void ClearMarketLogs(DirectoryInfo logdir)
         {
-            foreach (FileInfo fi in logdir.GetFiles())
+            logdir.Refresh();
+            if (!logdir.Exists) return;
+
+            foreach (FileInfo fi in logdir.EnumerateFiles("*.txt"))
             {
-                if (!MiscTools.IsFileLocked(fi))
+                try
+                {
                     fi.Delete();
+                }
+                catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                {
+                    // In use (EVE may be writing it); leave it for next time.
+                }
             }
         }
 
-        internal static void ClearApiCache()
+        /// <summary>Total size in bytes of the market logs, or 0 if the folder is missing or unreadable.</summary>
+        internal static long MarketLogsSize(DirectoryInfo logdir)
         {
-            if (Directory.Exists("Cache"))
+            try
             {
-                foreach (string file in Directory.GetFiles("Cache"))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    // ReSharper disable EmptyGeneralCatchClause
-                    catch //no fucks given
-                    // ReSharper restore EmptyGeneralCatchClause
-                    {
-                    }
-                }
+                logdir.Refresh();
+                return logdir.Exists ? logdir.EnumerateFiles().Sum(fi => fi.Length) : 0;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                return 0;
             }
         }
     }

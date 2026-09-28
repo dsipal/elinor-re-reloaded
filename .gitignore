@@ -40,8 +40,8 @@ Thumbs.db
 # Build folders #
 ######################
 
-Elinor/bin/
-Elinor/obj/
+**/bin/
+**/obj/
 *.suo
 *.msi
 .vs/

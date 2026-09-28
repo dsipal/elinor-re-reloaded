@@ -1,16 +1,23 @@
-﻿<Window x:Class="Elinor.SelectLogPathWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Select EVE log path" Height="192" Width="376"
-        Icon="/Elinor;component/Images/mainicon.png" ResizeMode="NoResize">
-  <Grid>
-    <TextBox Height="23" HorizontalAlignment="Left" Margin="12,46,0,0" Name="tbPath" VerticalAlignment="Top"
-             Width="278" />
-    <Label Content="Please select your 'marketlogs' folder" Height="28" HorizontalAlignment="Left"
-           Margin="12,12,0,0" Name="lblPath" VerticalAlignment="Top" />
-    <Button Content="..." Height="23" HorizontalAlignment="Left" Margin="296,46,0,0" Name="btnFileSelect"
-            VerticalAlignment="Top" Width="46" Click="BtnFileSelectClick" />
-    <Button Content="Ok" Height="23" HorizontalAlignment="Left" Margin="267,118,0,0" Name="btnOk"
-            VerticalAlignment="Top" Width="75" Click="BtnOkClick" />
-    <Button Content="Cancel" Height="23" HorizontalAlignment="Left" Margin="186,118,0,0" Name="btnCancel"
-            VerticalAlignment="Top" Width="75" Click="BtnCancelClick" />
-  </Grid>
+<Window x:Class="Elinor.SelectLogPathWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Select EVE market log folder"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Icon="/Elinor;component/Images/mainicon.png">
+    <StackPanel Margin="20">
+        <TextBlock Text="Where are your EVE market logs?" FontSize="16" FontWeight="SemiBold" />
+        <TextBlock TextWrapping="Wrap" Margin="0,6,0,14" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Usually Documents\EVE\logs\Marketlogs. Elinor reads the files EVE writes there when you click 'Export to file' in the market window." />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="tbPath" />
+            <Button Grid.Column="1" x:Name="btnFileSelect" Content="Browse..." Margin="8,0,0,0" Click="BtnFileSelectClick" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="btnOk" Content="OK" MinWidth="90" IsDefault="True"
+                    Style="{DynamicResource AccentButtonStyle}" Click="BtnOkClick" />
+            <Button x:Name="btnCancel" Content="Cancel" MinWidth="90" Margin="8,0,0,0" IsCancel="True" Click="BtnCancelClick" />
+        </StackPanel>
+    </StackPanel>
 </Window>

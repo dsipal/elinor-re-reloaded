@@ -1,13 +1,16 @@
-﻿<Window x:Class="Elinor.ProfileNameWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Enter new profile name" Height="160" Width="387"
-        ResizeMode="CanMinimize" Loaded="WindowLoaded" Icon="/Elinor;component/Images/mainicon.png" KeyDown="WindowKeyDown">
-  <Grid>
-    <Label Content="Enter profile name" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1"
-           VerticalAlignment="Top" />
-    <TextBox Height="23" Margin="12,46,12,0" Name="tbName" VerticalAlignment="Top" TextChanged="TbNameTextChanged" />
-    <Button Content="OK" Height="23" HorizontalAlignment="Right" Margin="0,0,12,12" Name="btnOk"
-            VerticalAlignment="Bottom" Width="75" Click="BtnOkClick" IsEnabled="False" />
-    <Button Content="Cancel" Height="23" HorizontalAlignment="Right" Margin="0,0,93,12" Name="btnCancel"
-            VerticalAlignment="Bottom" Width="75" Click="BtnCancelClick" />
-  </Grid>
+<Window x:Class="Elinor.ProfileNameWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="New profile"
+        Width="400" SizeToContent="Height" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Loaded="WindowLoaded" Icon="/Elinor;component/Images/mainicon.png" KeyDown="WindowKeyDown">
+    <StackPanel Margin="20">
+        <TextBlock Text="Profile name" FontWeight="SemiBold" Margin="0,0,0,8" />
+        <TextBox x:Name="tbName" TextChanged="TbNameTextChanged" />
+        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="For example the character name. Each profile keeps its own skills, fees and ranges." />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="btnOk" Content="Create" MinWidth="90" IsEnabled="False"
+                    Style="{DynamicResource AccentButtonStyle}" Click="BtnOkClick" />
+            <Button x:Name="btnCancel" Content="Cancel" MinWidth="90" Margin="8,0,0,0" Click="BtnCancelClick" />
+        </StackPanel>
+    </StackPanel>
 </Window>

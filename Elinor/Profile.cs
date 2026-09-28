@@ -1,90 +1,37 @@
-﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Runtime.Serialization;
+using System.Linq;
 
 namespace Elinor
 {
-    [Serializable]
-    public class Profile : ISerializable
+    public class Profile
     {
-        public Profile()
-        {
-            charId = 0;
-            profileName = "Default";
-            marginThreshold = .1;
-            minimumThreshold = .02;
-            accounting = 5;
-            brokerRelations = 5;
-            factionStanding = .0;
-            corpStanding = .0;
+        public const string DefaultName = "Default";
 
-            useBuyCustomBroker = false;
-            buyCustomBroker = 0.01;
-            useSellCustomBroker = false;
-            sellCustomBroker = 0.01;
+        public string profileName { get; set; } = DefaultName;
+        public double marginThreshold { get; set; } = .1;
+        public double minimumThreshold { get; set; } = .02;
+        public int accounting { get; set; } = 5;
+        public int brokerRelations { get; set; } = 5;
+        public double factionStanding { get; set; }
+        public double corpStanding { get; set; }
 
-            sellRange = (int)ranges.HUB;
-            buyRange = (int)ranges.HUB;
-        }
+        public bool useBuyCustomBroker { get; set; }
+        public double buyCustomBroker { get; set; } = 0.01;
+        public bool useSellCustomBroker { get; set; }
+        public double sellCustomBroker { get; set; } = 0.01;
 
-        public Profile(SerializationInfo info, StreamingContext ctxt)
-        {
+        public int buyRange { get; set; } = (int)Ranges.HUB;
+        public int sellRange { get; set; } = (int)Ranges.HUB;
 
-            foreach (SerializationEntry entry in info)
-            {
-                switch (entry.Name)
-                {
-                    case "charId":
-                        charId = (long)info.GetValue("charId", typeof(long)); break;
-                    case "accounting":
-                        accounting = (int)info.GetValue("accounting", typeof(int)); break;
-                    case "profilename":
-                        profileName = (string)info.GetValue("profilename", typeof(string)); break;
-                    case "marginthreshold":
-                        marginThreshold = (double)info.GetValue("marginthreshold", typeof(double)); break;
-                    case "minimumthreshold":
-                        minimumThreshold = (double)info.GetValue("minimumthreshold", typeof(double)); break;
-                    case "brokerrelations":
-                        brokerRelations = (int)info.GetValue("brokerrelations", typeof(int)); break;
-                    case "factionstanding":
-                        factionStanding = (double)info.GetValue("factionstanding", typeof(double)); break;
-                    case "corpstanding":
-                        corpStanding = (double)info.GetValue("corpstanding", typeof(double)); break;
-                    case "useBuyCustomBroker":
-                        useBuyCustomBroker = info.GetBoolean("useBuyCustomBroker"); break;
-                    case "buyCustomBroker":
-                        buyCustomBroker = info.GetDouble("buyCustomBroker"); break;
-                    case "useSellCustomBroker":
-                        useSellCustomBroker = info.GetBoolean("useSellCustomBroker"); break;
-                    case "sellCustomBroker":
-                        sellCustomBroker = info.GetDouble("sellCustomBroker"); break;
-                    case "buyRange":
-                        buyRange = info.GetInt32("buyRange"); break;
-                    case "sellRange":
-                        sellRange = info.GetInt32("sellRange"); break;
-                }
-            }
-        }
+        /// <summary>How much auto copy undercuts / outbids. See <see cref="PriceSteps"/>.</summary>
+        public int priceStep { get; set; } = (int)PriceSteps.SMART;
+        public double customPriceStep { get; set; } = 1000;
 
-        internal long charId { get; set; }
-        internal string profileName { get; set; }
-        internal double marginThreshold { get; set; }
-        internal double minimumThreshold { get; set; }
-        internal int accounting { get; set; }
-        internal int brokerRelations { get; set; }
-        internal double factionStanding { get; set; }
-        internal double corpStanding { get; set; }
+        /// <summary>Stations that count as trade hubs for <see cref="Ranges.HUB"/>.</summary>
+        public List<HubStation> hubs { get; set; } = HubStation.Defaults();
 
-        internal bool useBuyCustomBroker { get; set; }
-        internal double buyCustomBroker { get; set; }
-        internal bool useSellCustomBroker { get; set; }
-        internal double sellCustomBroker { get; set; }
-
-        internal int buyRange { get; set; }
-        internal int sellRange { get; set; }
-
-        public enum ranges
+        public enum Ranges
         {
             [Description("Hubs (Station)")]
             HUB,
@@ -98,64 +45,41 @@ namespace Elinor
             REGION,
         }
 
-        #region ISerializable Members
-
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        public enum PriceSteps
         {
-            info.AddValue("charId", charId);
-            info.AddValue("profilename", profileName);
-            info.AddValue("marginthreshold", marginThreshold);
-            info.AddValue("minimumthreshold", minimumThreshold);
-            info.AddValue("accounting", accounting);
-            info.AddValue("brokerrelations", brokerRelations);
-            info.AddValue("factionstanding", factionStanding);
-            info.AddValue("corpstanding", corpStanding);
+            /// <summary>Change the 4th significant digit, matching EVE's price tick rule.</summary>
+            SMART,
+            /// <summary>0.01 ISK.</summary>
+            MINIMUM,
+            /// <summary><see cref="customPriceStep"/> ISK.</summary>
+            CUSTOM,
+        }
 
-            info.AddValue("useBuyCustomBroker", useBuyCustomBroker);
-            info.AddValue("buyCustomBroker", buyCustomBroker);
-            info.AddValue("useSellCustomBroker", useSellCustomBroker);
-            info.AddValue("sellCustomBroker", sellCustomBroker);
-
-            info.AddValue("buyRange", buyRange);
-            info.AddValue("sellRange", sellRange);
-    }
-
-        #endregion
+        internal HashSet<long> HubIds() => hubs.Select(h => h.id).ToHashSet();
 
         public override string ToString()
         {
             return profileName;
         }
+    }
 
-        public static Profile ReadSettings(string profileName)
+    public class HubStation
+    {
+        public long id { get; set; }
+        public string name { get; set; } = "";
+
+        internal static List<HubStation> Defaults() => new List<HubStation>
         {
-            if (File.Exists(string.Format("profiles\\{0}.dat", profileName)))
-            {
-                try
-                {
-                    return Serializer.DeSerializeObject(string.Format("profiles\\{0}.dat", profileName));
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            }
-            return null;
-        }
+            new HubStation { id = 60003760, name = "Jita IV - Moon 4 - Caldari Navy Assembly Plant" },
+            new HubStation { id = 60008494, name = "Amarr VIII (Oris) - Emperor Family Academy" },
+            new HubStation { id = 60011866, name = "Dodixie IX - Moon 20 - Federation Navy Assembly Plant" },
+            new HubStation { id = 60004588, name = "Rens VI - Moon 8 - Brutor Tribe Treasury" },
+            new HubStation { id = 60005686, name = "Hek VIII - Moon 12 - Boundless Creation Factory" },
+        };
 
-        public static void SaveSettings(Profile profile)
+        public override string ToString()
         {
-            if (profile.profileName == "Default") return;
-
-            Directory.CreateDirectory("profiles");
-
-            Serializer.SerializeObject(
-                string.Format(
-                    "profiles\\{0}.dat", 
-                    profile.profileName
-                ), 
-                profile
-            );
+            return name.Length != 0 ? name + "  (" + id + ")" : id.ToString();
         }
     }
 }

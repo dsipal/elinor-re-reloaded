@@ -1,82 +1,62 @@
-﻿using System;
-using System.Diagnostics;
+using System;
+using System.Net.Http;
 using System.Reflection;
-using System.Windows.Forms;
-using System.Xml;
-using MessageBox = System.Windows.Forms.MessageBox;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Xml.Linq;
 
 namespace Elinor
 {
-    class Updates
+    internal static class Updates
     {
-        public static void CheckForUpdates()
+        // Bump <version> in Elinor/currentVersion.xml on master when publishing a release.
+        private const string VersionUrl =
+            "https://raw.githubusercontent.com/dsipal/elinor-re-reloaded/master/Elinor/currentVersion.xml";
+
+        private static readonly HttpClient Http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+
+        /// <summary>
+        /// Safe in single-file publishes, unlike FileVersionInfo on Assembly.Location
+        /// (Location is empty there).
+        /// </summary>
+        internal static Version CurrentVersion =>
+            Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0);
+
+        /// <summary>
+        /// Checks for a newer version. Never throws. When <paramref name="manual"/> is false
+        /// (startup check) only a newer version is reported; failures are just logged.
+        /// </summary>
+        internal static async Task CheckForUpdatesAsync(Window owner, bool manual = false)
         {
-            if (Properties.Settings.Default.checkforupdates)
+            try
             {
-                Version newVersion = null;
-                var url = string.Empty;
-                XmlTextReader reader = null;
+                string xml = await Http.GetStringAsync(VersionUrl);
+                XElement root = XDocument.Parse(xml).Root ?? throw new FormatException("Empty version file");
 
-                try
-                {
-                    reader = new XmlTextReader(@"https://raw.githubusercontent.com/Slivo-fr/elinor-reloaded/master/Elinor/currentVersion.xml");
-                    reader.MoveToContent();
-                    var elementName = "";
-                    if ((reader.NodeType == XmlNodeType.Element) &&
-                        (reader.Name == "elinor"))
-                    {
-                        while (reader.Read())
-                        {
-                            if (reader.NodeType == XmlNodeType.Element)
-                                elementName = reader.Name;
-                            else
-                            {
-                                if ((reader.NodeType == XmlNodeType.Text) &&
-                                    (reader.HasValue))
-                                {
-                                    switch (elementName)
-                                    {
-                                        case "version":
-                                            newVersion = new Version(reader.Value);
-                                            break;
-                                        case "url":
-                                            url = reader.Value;
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                var newVersion = new Version((string?)root.Element("version") ?? "0.0");
+                string? url = (string?)root.Element("url");
 
-                    if (newVersion != null && url != string.Empty)
-                    {
-                        var assembly = Assembly.GetExecutingAssembly();
-                        var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-                        var currentVersion = new Version(fvi.ProductVersion);
-
-                        if (newVersion > currentVersion)
-                        {
-                            // TODO: Manage new version check
-                            if (DialogResult.Yes ==
-                                MessageBox.Show("There's a new version of Elinor available, do you want to download it?",
-                                    "New version available",
-                                    MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Question))
-                            {
-                                Process.Start(url);
-                            }
-                        }
-                    }
-                }
-                    // ReSharper disable EmptyGeneralCatchClause
-                catch (Exception) //if it fails, don't bother the user
-                    // ReSharper restore EmptyGeneralCatchClause
+                if (newVersion > CurrentVersion && !string.IsNullOrEmpty(url) &&
+                    MessageBox.Show(owner,
+                        "There's a new version of Elinor available, do you want to download it?",
+                        "New version available",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
+                    MiscTools.OpenUrl(url);
                 }
-                finally
+                else if (manual && newVersion <= CurrentVersion)
                 {
-                    if (reader != null) reader.Close();
+                    MessageBox.Show(owner, "You're running the latest version (" + CurrentVersion.ToString(3) + ").",
+                        "Elinor", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Info("Update check failed: " + ex.Message);
+                if (manual)
+                    MessageBox.Show(owner, "Could not check for updates:\n" + ex.Message,
+                        "Elinor", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }

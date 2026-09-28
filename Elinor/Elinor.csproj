@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>Elinor</RootNamespace>
+    <!-- Pack URIs (/Elinor;component/...) depend on this name -->
+    <AssemblyName>Elinor</AssemblyName>
+    <ApplicationIcon>mainicon.ico</ApplicationIcon>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+    <!-- WPF0001: Application.ThemeMode (built-in Fluent light/dark theme) is still flagged experimental -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+
+    <Version>1.13.0</Version>
+    <Product>Elinor</Product>
+    <AssemblyTitle>Elinor reloaded</AssemblyTitle>
+    <Description>Automatic margin calculator for EVE Online</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\mainicon.png" />
+    <Resource Include="mainicon.ico" />
+    <None Include="currentVersion.xml" />
+    <None Include="changelog.txt" />
+    <None Include="license.rtf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Elinor.Tests" />
+  </ItemGroup>
+
+</Project>

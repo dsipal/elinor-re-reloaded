@@ -1,363 +1,530 @@
-﻿<Window x:Class="Elinor.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Elinor="clr-namespace:Elinor" Title="Elinor reloaded" Height="426"
-        Width="525" Closed="WindowClosed" Loaded="WindowLoaded" ResizeMode="CanMinimize"
-        Icon="/Elinor;component/Images/mainicon.png" Closing="WindowClosing">
+<Window x:Class="Elinor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Elinor" Width="640" Height="640" MinWidth="560" MinHeight="560"
+        Icon="/Elinor;component/Images/mainicon.png"
+        Closed="WindowClosed" Loaded="WindowLoaded">
     <Window.Resources>
         <RoutedUICommand x:Key="PinWindow" Text="Pin Window" />
         <RoutedUICommand x:Key="AutoCopy" Text="Auto Copy" />
+        <RoutedUICommand x:Key="CompactMode" Text="Compact overlay" />
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style x:Key="CardHeader" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style x:Key="Caption" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="Value" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+        <Style x:Key="Error" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{DynamicResource SymbolThemeFontFamily}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="TabContent" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Padding" Value="0,12,4,0" />
+        </Style>
     </Window.Resources>
+
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource PinWindow}" Executed="PinWindow" />
         <CommandBinding Command="{StaticResource AutoCopy}" Executed="AutoCopy" />
+        <CommandBinding Command="{StaticResource CompactMode}" Executed="CompactMode" />
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="P" Modifiers="Ctrl" Command="{StaticResource PinWindow}" />
         <KeyBinding Key="A" Modifiers="Ctrl" Command="{StaticResource AutoCopy}" />
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{StaticResource CompactMode}" />
     </Window.InputBindings>
-    <Grid Height="388">
-        <TabControl Margin="12,45,12,0" Name="tcMain" Height="313" VerticalAlignment="Top">
-            <TabItem Header="Overview" Name="tiOverview">
-                <Grid Height="270">
-                    <Grid Height="40" VerticalAlignment="Top" Panel.ZIndex="1">
-                        <Label FontWeight="Bold" FontSize="18" Name="lblItemName" Margin="6,3,3,3"
-                   Content="No item selected" />
-                    </Grid>
-                    <Grid Margin="0,30,0,0" Height="234" VerticalAlignment="Top">
-                        <Grid Height="107" VerticalAlignment="Top">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Profile bar -->
+        <Grid Grid.Row="0" Margin="16,12,16,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Profile" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <ComboBox Grid.Column="1" x:Name="cbProfiles" HorizontalAlignment="Stretch"
+                      SelectionChanged="CbProfilesSelectionChanged" />
+            <Button Grid.Column="2" x:Name="btnNew" Margin="8,0,0,0" Click="BtnNewClick"
+                    ToolTip="Create a new profile to store display and calculation settings">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE710;" Margin="0,0,6,0" />
+                    <TextBlock Text="New" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="3" x:Name="btnDelete" Margin="4,0,0,0" Click="BtnDeleteClick"
+                    ToolTip="Delete the current profile">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" />
+            </Button>
+            <Button Grid.Column="4" x:Name="btnCompact" Margin="12,0,0,0" Click="BtnCompactClick"
+                    ToolTip="Compact overlay (Ctrl+O)">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE73F;" />
+            </Button>
+            <ToggleButton Grid.Column="5" x:Name="btnStayOnTop" Margin="4,0,0,0" Click="BtnStayOnTopClick"
+                          ToolTip="Keep window on top (Ctrl+P)">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE718;" />
+            </ToggleButton>
+        </Grid>
+
+        <TabControl Grid.Row="1" x:Name="tcMain" Margin="16,0,16,0">
+
+            <!-- Overview -->
+            <TabItem Header="Overview" x:Name="tiOverview">
+                <ScrollViewer Style="{StaticResource TabContent}">
+                    <StackPanel>
+                        <TextBlock x:Name="lblItemName" Text="No item selected" FontSize="20" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis" Margin="2,0,0,12" />
+
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="32" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="32" />
+                                        <RowDefinition Height="32" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="32" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Sell" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Row="0" x:Name="lblSell" Text="0.00 ISK" Style="{StaticResource Value}"
+                                               FontWeight="SemiBold" FontSize="15" Cursor="Hand" ToolTip="Click to copy"
+                                               MouseLeftButtonUp="LblSellMouseDown" />
+                                    <TextBlock Grid.Row="1" Text="Buy" FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Row="1" x:Name="lblBuy" Text="0.00 ISK" Style="{StaticResource Value}"
+                                               FontWeight="SemiBold" FontSize="15" Cursor="Hand" ToolTip="Click to copy"
+                                               MouseLeftButtonUp="LblBuyMouseDown" />
+                                    <Border Grid.Row="2" Height="1" Margin="0,6" Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                                    <TextBlock Grid.Row="3" Text="Profit" FontWeight="SemiBold" VerticalAlignment="Center"
+                                               ToolTip="Revenue - Cost of sales" />
+                                    <TextBlock Grid.Row="3" x:Name="lblProfit" Text="0.00 ISK" Style="{StaticResource Value}" FontWeight="SemiBold" />
+                                </Grid>
+
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="32" />
+                                        <RowDefinition Height="32" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="32" />
+                                        <RowDefinition Height="32" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Revenue" Style="{StaticResource FieldLabel}"
+                                               ToolTip="Sell price - Broker's fee - Sales tax" />
+                                    <TextBlock Grid.Row="0" x:Name="lblRevenue" Text="0.00 ISK" Style="{StaticResource Value}" />
+                                    <TextBlock Grid.Row="1" Text="Cost of sales" Style="{StaticResource FieldLabel}"
+                                               ToolTip="Buy price + Broker's fee" />
+                                    <TextBlock Grid.Row="1" x:Name="lblCoS" Text="0.00 ISK" Style="{StaticResource Value}" />
+                                    <Border Grid.Row="2" Height="1" Margin="0,6" Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                                    <TextBlock Grid.Row="3" Text="Sell order fees" Style="{StaticResource FieldLabel}"
+                                               ToolTip="Broker's fee + Sales tax on one sell order" />
+                                    <TextBlock Grid.Row="3" x:Name="lblSellOrderCost" Text="0.00 ISK" Style="{StaticResource Value}" />
+                                    <TextBlock Grid.Row="4" Text="Buy order fees" Style="{StaticResource FieldLabel}"
+                                               ToolTip="Broker's fee on one buy order" />
+                                    <TextBlock Grid.Row="4" x:Name="lblBuyOrderCost" Text="0.00 ISK" Style="{StaticResource Value}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
-                            <Label Grid.Column="0" Content="Sell" HorizontalAlignment="Left" Margin="12,12,0,0"
-                     Name="lblSellLabel" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" />
-                            <Label Grid.Column="0" Content="Buy" FontSize="14" FontWeight="Bold"
-                     HorizontalAlignment="Left" Margin="12,35,0,0" Name="lblBuyLabel" VerticalAlignment="Top" />
-                            <Label ToolTip="Click to copy" Content="0.00 ISK" HorizontalContentAlignment="Right"
-                     Margin="0,12,12,0" Name="lblSell" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" Width="170"
-                     HorizontalAlignment="Right" MouseDown="LblSellMouseDown" />
-                            <Label ToolTip="Click to copy" Content="0.00 ISK" HorizontalContentAlignment="Right"
-                     FontSize="14" FontWeight="Bold" Margin="0,35,12,0" Name="lblBuy" VerticalAlignment="Top" Width="174"
-                     HorizontalAlignment="Right" Height="30" MouseDown="LblBuyMouseDown" />
-
-                            <Label Grid.Column="1" Content="Revenue" Height="28" HorizontalAlignment="Left"
-                     Margin="6,14,0,0" Name="lbl5" VerticalAlignment="Top">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">
-                    Sell price - Broker's fee - Sales tax
-                                    </TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Grid.Column="1" Content="Cost of Sales" Height="28" HorizontalAlignment="Left"
-                     Margin="6,29,0,0" Name="lbl6" VerticalAlignment="Top">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">
-                    Buy price + Broker's fee
-                                    </TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Grid.Column="0" Content="Profit" Height="28" HorizontalAlignment="Left"
-                     Margin="12,83,0,0" Name="lbl7" VerticalAlignment="Top" FontWeight="Bold">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">
-                    Revenue - Cost of Sales
-                                    </TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Grid.Column="1" Content="0.00 ISK" HorizontalContentAlignment="Right" Height="28"
-                     HorizontalAlignment="Right" Margin="0,14,10,0" Name="lblRevenue" VerticalAlignment="Top" />
-                            <Label Grid.Column="1" Content="0.00 ISK" Height="28" HorizontalAlignment="Right"
-                     HorizontalContentAlignment="Right" Margin="0,29,10,0" Name="lblCoS" VerticalAlignment="Top" />
-                            <Label Grid.Column="0" Content="0.00 ISK" Height="28" HorizontalAlignment="Right"
-                     HorizontalContentAlignment="Right" Margin="0,83,18,0" Name="lblProfit" VerticalAlignment="Top" FontWeight="Bold" />
-                            <Label Content="Buy tax" Height="28" Margin="5,83,0,0" Name="lbl8" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Left" Width="86">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">Buy price + Broker's fee</TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Content="Sell tax" HorizontalAlignment="Left" Margin="5,63,0,16" Name="lbl9" Grid.Column="1">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">Buy price + Broker's fee</TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Content="0.00 ISK" Height="28" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,83,10,0" Name="lblBuyOrderCost" VerticalAlignment="Top" Grid.Column="1" />
-                            <Label Content="0.00 ISK" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,63,10,0" Name="lblSellOrderCost" Grid.Column="1" Height="28" VerticalAlignment="Top" />
-                        </Grid>
-                        <Separator Height="5" Margin="12,116,12,0" Name="sprt1" VerticalAlignment="Top" Width="Auto" />
-
-                        <Grid Margin="0,132,0,0" Height="102" VerticalAlignment="Top">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Border Name="brdImportant" BorderThickness="1" CornerRadius="4" Padding="5"
-                      BorderBrush="LightGray" Margin="12,0,6,0" Height="96" VerticalAlignment="Top">
+                            <Border Grid.Column="0" x:Name="brdImportant" Style="{StaticResource Card}" BorderThickness="2">
                                 <Grid>
-                                    <Label Content="Profit margin" FontSize="14" FontWeight="Bold" Height="28"
-                         HorizontalAlignment="Left" Margin="6,10,0,0" Name="lblMarginLabel" VerticalAlignment="Top">
-                                        <Label.ToolTip>
-                                            <StackPanel>
-                                                <TextBlock FontStyle="Italic" TextAlignment="Center">Profit</TextBlock>
-                                                <Separator />
-                                                <TextBlock FontStyle="Italic" TextAlignment="Center">Revenue</TextBlock>
-                                            </StackPanel>
-                                        </Label.ToolTip>
-                                    </Label>
-                                    <Label Content="0%" FontSize="14" FontWeight="Bold" Height="28"
-                         HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,10,13,0" Name="lblMargin"
-                         VerticalAlignment="Top" />
-                                    <Label Content="Cost markup" FontSize="12" FontWeight="Bold" Height="28"
-                         HorizontalAlignment="Left" Margin="6,44,0,0" Name="lblMarkupLabel" VerticalAlignment="Top">
-                                        <Label.ToolTip>
-                                            <StackPanel>
-                                                <TextBlock FontStyle="Italic" TextAlignment="Center">Profit</TextBlock>
-                                                <Separator />
-                                                <TextBlock FontStyle="Italic" TextAlignment="Center">Cost of Sales</TextBlock>
-                                            </StackPanel>
-                                        </Label.ToolTip>
-                                    </Label>
-                                    <Label Content="0%" FontSize="12" FontWeight="Bold" Height="28"
-                         HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="0,44,13,0" Name="lblMarkup"
-                         VerticalAlignment="Top" />
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="40" />
+                                        <RowDefinition Height="32" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Profit margin" FontWeight="SemiBold" VerticalAlignment="Center"
+                                               ToolTip="Profit / Revenue" />
+                                    <TextBlock Grid.Row="0" x:Name="lblMargin" Text="0%" Style="{StaticResource Value}"
+                                               FontSize="24" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Row="1" Text="Cost markup" Style="{StaticResource FieldLabel}"
+                                               ToolTip="Profit / Cost of sales" />
+                                    <TextBlock Grid.Row="1" x:Name="lblMarkup" Text="0%" Style="{StaticResource Value}" FontWeight="SemiBold" />
                                 </Grid>
                             </Border>
-                            <GroupBox Grid.Column="1" Header="Auto copy" Height="74" Margin="6,20,12,0"
-                        Name="gbAutocopy" VerticalAlignment="Top" IsEnabled="False">
-                                <Grid>
-                                    <RadioButton Content="Sell price" Height="16" HorizontalAlignment="Left"
-                               Margin="6,6,0,0" Name="rbSell" VerticalAlignment="Top" IsChecked="True" GroupName="grpAutoCopy" Checked="RbChecked" />
-                                    <RadioButton Content="Buy price" Height="16" HorizontalAlignment="Left"
-                               Margin="6,29,0,0" Name="rbBuy" VerticalAlignment="Top" GroupName="grpAutoCopy" Checked="RbChecked" />
-                                </Grid>
-                            </GroupBox>
-                            <CheckBox Content="Enable auto copy"
-                        ToolTip="Copies the new price to the clipboard automatically" Grid.Column="1" Height="16" HorizontalAlignment="Left"
-                        Margin="6,0,0,0" Name="cbAutoCopy" VerticalAlignment="Top" IsChecked="False" Checked="CbAutoCopyChecked"
-                        Unchecked="CbAutoCopyUnchecked" />
-                            <Image Height="16" HorizontalAlignment="Right" Margin="206,0,10,0" Name="imgCopyStatus"
-                     Stretch="Fill" VerticalAlignment="Top" Width="16" Grid.Column="1" />
 
-
-                        </Grid>
-
-
-                    </Grid>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Character settings" Name="tiSettings" LostFocus="TiSettingsLostFocus" GotFocus="TiSettingsGotFocus">
-                <Grid>
-
-
-                    <GroupBox Header="Fees and Taxes" Margin="12,12,12,0" Name="gbFeesAndTaxes" Height="178"
-                    VerticalAlignment="Top">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition Width="216" />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Broker Relations" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0"
-                     Name="label6" VerticalAlignment="Top" />
-                            <ComboBox ToolTip="The 'Broker Relations' skill level" Height="23"
-                        HorizontalAlignment="Right" Margin="0,8,9,0" Name="cbBrokerRelations" VerticalAlignment="Top" Width="57">
-                            </ComboBox>
-                            <Label Content="" Height="28" HorizontalAlignment="Left" Margin="6,121,0,0"
-                     Name="lblBrokerRelations" VerticalAlignment="Top" FontStyle="Italic">
-                                <Label.ToolTip>
-                                    <StackPanel>
-                                        <TextBlock FontStyle="Italic" TextAlignment="Center">
-                      1% – 0.05% ⋅ Broker Relations
-                                        </TextBlock>
-                                        <Separator />
-                                        <Grid>
-                                            <TextBlock FontStyle="Italic" TextAlignment="Left" Margin="0,0,2,0">2</TextBlock>
-                                            <TextBlock FontStyle="Italic" TextAlignment="Right" Margin="10,0,0,0"
-                                 VerticalAlignment="Top" FontSize="9" Height="13">
-                        0.14 ⋅ FactionStanding + 0.06 ⋅ CorporationStanding
-                                            </TextBlock>
-                                        </Grid>
+                            <Border Grid.Column="2" Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <Grid>
+                                        <CheckBox x:Name="cbAutoCopy" Content="Auto copy" IsChecked="False"
+                                                  ToolTip="Copy the new price to the clipboard on every export (Ctrl+A)"
+                                                  Checked="CbAutoCopyChecked" Unchecked="CbAutoCopyUnchecked" />
+                                        <TextBlock x:Name="tbCopyStatus" Style="{StaticResource Glyph}" HorizontalAlignment="Right" FontSize="16" />
+                                    </Grid>
+                                    <StackPanel x:Name="gbAutocopy" Orientation="Horizontal" IsEnabled="False" Margin="0,4,0,0">
+                                        <RadioButton x:Name="rbSell" Content="Sell price" GroupName="grpAutoCopy" IsChecked="True"
+                                                     Checked="RbChecked" MinWidth="0" Margin="0,0,16,0" />
+                                        <RadioButton x:Name="rbBuy" Content="Buy price" GroupName="grpAutoCopy"
+                                                     Checked="RbChecked" MinWidth="0" />
                                     </StackPanel>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Content="Corp standing" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0"
-                     Name="label7" VerticalAlignment="Top" />
-                            <Label Content="Faction standing" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0"
-                     Name="label8" VerticalAlignment="Top" />
-                            <Label Content="" Grid.Column="1" Height="28" HorizontalAlignment="Right"
-                     Margin="0,121,6,0" Width="204" Name="lblSalesTax" VerticalAlignment="Top" FontStyle="Italic">
-                                <Label.ToolTip>
-                                    <TextBlock FontStyle="Italic" TextAlignment="Center">
-                    1.5% ⋅ (1 - (Accounting ⋅ 10%))
-                                    </TextBlock>
-                                </Label.ToolTip>
-                            </Label>
-                            <Label Content="Accounting" Height="28" HorizontalAlignment="Right" Margin="0,6,140,0"
-                     Name="label123654" VerticalAlignment="Top" Grid.Column="1" />
-                            <ComboBox ToolTip="The 'Accounting' skill level" Height="23" HorizontalAlignment="Right"
-                        Margin="0,8,6,0" Name="cbAccounting" VerticalAlignment="Top" Width="57" Grid.Column="1" />
-                            <Border BorderBrush="#FFA0A0A0" BorderThickness="1" Grid.Column="1" Height="143"
-                      HorizontalAlignment="Left" Margin="0,6,0,0" Name="border1" VerticalAlignment="Top" Width="1" MaxWidth="1" MinWidth="1" />
-                            <TextBox Height="23" HorizontalAlignment="Right" Margin="0,42,9,0" Name="tbCorpStanding"
-                       VerticalAlignment="Top" Width="57" />
-                            <Popup AllowsTransparency="True" Name="ppCorpStanding" Placement="Bottom" IsOpen="False">
-                                <Border BorderBrush="DimGray" BorderThickness="1" CornerRadius="5">
-                                    <Border.Background>
-                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                            <GradientStop Color="WhiteSmoke" Offset="0" />
-                                            <GradientStop Color="Gainsboro" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                    <TextBlock Margin="3">
-                    Standing must be between -10 and 10
-                                    </TextBlock>
-                                </Border>
-                            </Popup>
-                            <TextBox Height="23" HorizontalAlignment="Right" Margin="0,76,9,0" Name="tbFactionStanding"
-                       VerticalAlignment="Top" Width="57" />
-                            <Popup AllowsTransparency="True" Name="ppFactionStanding" Placement="Bottom" IsOpen="False">
-                                <Border BorderBrush="DimGray" BorderThickness="1" CornerRadius="5">
-                                    <Border.Background>
-                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                            <GradientStop Color="WhiteSmoke" Offset="0" />
-                                            <GradientStop Color="Gainsboro" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Border.Background>
-                                    <TextBlock Margin="3">
-                    Standing must be between -10 and 10
-                                    </TextBlock>
-                                </Border>
-                            </Popup>
+                                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0"
+                                               Text="Copies an undercut sell / outbid buy price. Step is set in Trade settings." />
+                                </StackPanel>
+                            </Border>
                         </Grid>
-                    </GroupBox>
-                    <Button Content="Default settings" Height="23" HorizontalAlignment="Right" Margin="0,0,14,7"
-                  Name="btnDefaultChar" VerticalAlignment="Bottom" Width="102" Click="BtnResetCharClick" />
-
-                </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
-            <TabItem Header="Trade settings" Name="tiTradeSettings" LostFocus="tiTradeSettingsLostFocus" GotFocus="tiTradeSettingsGotFocus">
-                <Grid>
 
-                    <GroupBox Header="Broker settings" Height="106" Margin="12,12,12,0"
-                        Name="gbBuyCustomBroker" VerticalAlignment="Top">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
+            <!-- Character -->
+            <TabItem Header="Character" x:Name="tiSettings" LostFocus="TiSettingsLostFocus">
+                <ScrollViewer Style="{StaticResource TabContent}">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Skills" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Broker Relations" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="cbBrokerRelations" Width="90"
+                                              ToolTip="The 'Broker Relations' skill level" />
+                                    <TextBlock Grid.Row="2" Text="Accounting" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="cbAccounting" Width="90"
+                                              ToolTip="The 'Accounting' skill level" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-                            <CheckBox x:Name="cbUseCustomBuyBroker" Content="Use custom broker free for buys" Margin="0,12,12,0" Checked="cbUseCustomBuyBrokerChecked" Unchecked="cbUseCustomBuyBrokerUnchecked" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="200" />
-                            <TextBox TextChanged="TbCustomBuyBrokerChanged"  TextAlignment="Right" Height="23" HorizontalAlignment="Left" Margin="116,10,0,0" Name="tbCustomBuyBroker" VerticalAlignment="Top" Width="80" Text="2" Grid.Column="1" />
-                            <Label Content="%" Height="28" HorizontalAlignment="Left" Margin="195,8,0,0" Name="labelpercentbrokerbuy" VerticalAlignment="Top" Grid.Column="1" />
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Standings with the station owner" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Corporation standing" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="tbCorpStanding" Width="90" TextAlignment="Right" />
+                                    <TextBlock Grid.Row="1" Grid.ColumnSpan="2" x:Name="errCorpStanding" Style="{StaticResource Error}"
+                                               HorizontalAlignment="Right" Text="Standing must be between -10 and 10" />
+                                    <TextBlock Grid.Row="3" Text="Faction standing" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="tbFactionStanding" Width="90" TextAlignment="Right" />
+                                    <TextBlock Grid.Row="4" Grid.ColumnSpan="2" x:Name="errFactionStanding" Style="{StaticResource Error}"
+                                               HorizontalAlignment="Right" Text="Standing must be between -10 and 10" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-                            <CheckBox x:Name="cbUseCustomSellBroker" Content="Use custom broker free for sells" Margin="0,50,12,0" Checked="cbUseCustomSellBrokerChecked" Unchecked="cbUseCustomSellBrokerUnchecked" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="200" />
-                            <TextBox TextChanged="TbCustomSellBrokerChanged"  TextAlignment="Right" Height="23" HorizontalAlignment="Left" Margin="116,48,0,0" Name="tbCustomSellBroker" VerticalAlignment="Top" Width="80" Text="2" Grid.Column="1" />
-                            <Label Content="%" Height="28" HorizontalAlignment="Left" Margin="195,45,0,0" Name="labelpercentbrokersell" VerticalAlignment="Top" Grid.Column="1" />
-                        </Grid>
-                    </GroupBox>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Resulting fees" />
+                                <TextBlock x:Name="lblBrokerRelations"
+                                           ToolTip="3% - 0.3% x Broker Relations - 0.03% x Faction standing - 0.02% x Corporation standing" />
+                                <TextBlock x:Name="lblSalesTax" Margin="0,4,0,0"
+                                           ToolTip="7.5% x (1 - 11% x Accounting)" />
+                            </StackPanel>
+                        </Border>
 
-                    <GroupBox Header="Margins" Margin="12,125,12,0" Name="gbMarginsSettings" Height="71"
-                    VerticalAlignment="Top">
-                        <Grid Height="42">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Preferred Margin" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" Name="label5" VerticalAlignment="Top" Width="102" />
-                            <TextBox TextChanged="TbPreferredTextChanged"  TextAlignment="Right" Height="23" HorizontalAlignment="Left" Margin="114,8,0,0" Name="tbPreferred" VerticalAlignment="Top" Width="44" Text="10" />
-                            <Label Content="%" Height="28" HorizontalAlignment="Left" Margin="164,6,0,0" Name="label1" VerticalAlignment="Top" />
-                            <Label Content="Minimum Margin" Height="28" HorizontalAlignment="Left" Margin="6,8,0,0" Name="label132" VerticalAlignment="Top" Grid.Column="1" />
-                            <TextBox TextChanged="TbMinimumTextChanged" Height="23" HorizontalAlignment="Left" Margin="114,10,0,0" Name="tbMinimum" Text="2" TextAlignment="Right" VerticalAlignment="Top" Width="44" Grid.Column="1" />
-                            <Label Content="%" Height="28" HorizontalAlignment="Left" Margin="164,8,0,0" Name="label2" VerticalAlignment="Top" Grid.Column="1" />
-
-                        </Grid>
-                    </GroupBox>
-                    <Button Content="Default settings" Height="23" HorizontalAlignment="Right" Margin="0,0,14,7"
-                  Name="btnDefaultTrade" VerticalAlignment="Bottom" Width="102" Click="BtnResetTradeClick" />
-                </Grid>
+                        <Button Content="Restore defaults" x:Name="btnDefaultChar" HorizontalAlignment="Right"
+                                Margin="0,0,0,12" Click="BtnResetCharClick" />
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
-            <TabItem Header="Range settings" Name="tiRangeSettings" LostFocus="tiRangeSettingsLostFocus" GotFocus="tiRangeSettingsGotFocus">
-                <Grid>
-                    <GroupBox Header="Order processing range" Margin="12,12,12,0" Name="gbRange" Height="65" VerticalAlignment="Top">
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Buy order range" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" Name="buyRangeLabel" VerticalAlignment="Top" Grid.Column="0" />
-                            <ComboBox Height="23" HorizontalAlignment="Right" Margin="0,8,9,0" Name="cbBuyRange" VerticalAlignment="Top" Width="100"/>
-                            <Label Content="Sell order range" Height="28" HorizontalAlignment="Left" Margin="10,6,0,0" Name="sellRangeLabel" VerticalAlignment="Top" Grid.Column="1" />
-                            <ComboBox Height="23" HorizontalAlignment="Right" Margin="0,8,9,0" Name="cbSellRange" VerticalAlignment="Top" Width="100" Grid.Column="1"/>
-                        </Grid>
-                    </GroupBox>
-                </Grid>
+            <!-- Trade -->
+            <TabItem Header="Trade" x:Name="tiTradeSettings" LostFocus="tiTradeSettingsLostFocus">
+                <ScrollViewer Style="{StaticResource TabContent}">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Price step for auto copy" />
+                                <RadioButton x:Name="rbStepSmart" GroupName="grpStep" Checked="RbStepChecked"
+                                             Content="Smart: change the 4th significant digit (matches EVE's price rules)" />
+                                <RadioButton x:Name="rbStepMinimum" GroupName="grpStep" Checked="RbStepChecked" Margin="0,4,0,0"
+                                             Content="0.01 ISK" />
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <RadioButton x:Name="rbStepCustom" GroupName="grpStep" Checked="RbStepChecked"
+                                                 Content="Custom" MinWidth="0" VerticalAlignment="Center" />
+                                    <TextBox x:Name="tbCustomStep" Width="120" Margin="12,0,6,0" TextAlignment="Right"
+                                             TextChanged="TbCustomStepChanged" IsEnabled="False" />
+                                    <TextBlock Text="ISK" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock x:Name="lblStepExample" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
 
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Broker fees" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <CheckBox Grid.Row="0" x:Name="cbUseCustomBuyBroker" Content="Custom broker fee for buy orders"
+                                              Checked="cbUseCustomBuyBrokerChecked" Unchecked="cbUseCustomBuyBrokerUnchecked" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="tbCustomBuyBroker" Width="90" TextAlignment="Right"
+                                             TextChanged="TbCustomBuyBrokerChanged" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="%" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    <CheckBox Grid.Row="2" x:Name="cbUseCustomSellBroker" Content="Custom broker fee for sell orders"
+                                              Checked="cbUseCustomSellBrokerChecked" Unchecked="cbUseCustomSellBrokerUnchecked" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="tbCustomSellBroker" Width="90" TextAlignment="Right"
+                                             TextChanged="TbCustomSellBrokerChanged" />
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="%" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                </Grid>
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0"
+                                           Text="Use this for player structures, which set their own broker fee." />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Margins" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Preferred margin (green)" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="tbPreferred" Width="90" TextAlignment="Right"
+                                             TextChanged="TbPreferredTextChanged" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="%" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    <TextBlock Grid.Row="2" Text="Minimum margin (orange; red below)" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="tbMinimum" Width="90" TextAlignment="Right"
+                                             TextChanged="TbMinimumTextChanged" />
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="%" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Button Content="Restore defaults" x:Name="btnDefaultTrade" HorizontalAlignment="Right"
+                                Margin="0,0,0,12" Click="BtnResetTradeClick" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Range -->
+            <TabItem Header="Range" x:Name="tiRangeSettings" LostFocus="tiRangeSettingsLostFocus">
+                <ScrollViewer Style="{StaticResource TabContent}">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Order processing range" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="8" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Buy orders" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="cbBuyRange" Width="170" />
+                                    <TextBlock Grid.Row="2" Text="Sell orders" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="cbSellRange" Width="170" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Trade hubs" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8"
+                                           Text="Orders at these stations count for the 'Hubs (Station)' range." />
+                                <ListBox x:Name="lbHubs" Height="150" SelectionChanged="LbHubsSelectionChanged" />
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Station ID" Style="{StaticResource Caption}" Margin="0,0,0,4" />
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Name (optional)" Style="{StaticResource Caption}" Margin="0,0,0,4" />
+                                    <ComboBox Grid.Row="1" Grid.Column="0" x:Name="cbHubStation" IsEditable="True"
+                                              ToolTip="Type a station ID, or pick one from the last export" />
+                                    <TextBox Grid.Row="1" Grid.Column="2" x:Name="tbHubName" />
+                                    <Button Grid.Row="1" Grid.Column="4" x:Name="btnAddHub" Content="Add"
+                                            Style="{DynamicResource AccentButtonStyle}" Click="BtnAddHubClick" />
+                                </Grid>
+                                <TextBlock x:Name="errHub" Style="{StaticResource Error}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button x:Name="btnRemoveHub" Content="Remove selected" IsEnabled="False" Click="BtnRemoveHubClick" />
+                                    <Button Content="Restore default hubs" Margin="8,0,0,0" Click="BtnResetHubsClick" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- App settings -->
+            <TabItem x:Name="tiApp">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Glyph}" Text="&#xE713;" Margin="0,0,6,0" />
+                        <TextBlock Text="Settings" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer Style="{StaticResource TabContent}">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Appearance" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Theme" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox Grid.Column="1" x:Name="cbTheme" Width="170" SelectionChanged="CbThemeSelectionChanged" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Compact overlay" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8"
+                                           Text="A small always-on-top window with just the item, prices and margin, to keep over the EVE client. Drag it anywhere." />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="50" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Opacity" Style="{StaticResource FieldLabel}" Margin="0,0,12,0" />
+                                    <Slider Grid.Column="1" x:Name="slOverlayOpacity" Minimum="30" Maximum="100"
+                                            SmallChange="5" LargeChange="10" VerticalAlignment="Center"
+                                            ValueChanged="SlOverlayOpacityChanged" />
+                                    <TextBlock Grid.Column="2" x:Name="lblOverlayOpacity" Style="{StaticResource Value}" />
+                                </Grid>
+                                <Button Content="Open compact overlay (Ctrl+O)" Margin="0,10,0,0" Click="BtnCompactClick" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="Market logs" />
+                                <TextBox x:Name="tbLogPath" IsReadOnly="True" />
+                                <TextBlock x:Name="lblLogSize" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                                <WrapPanel Margin="0,10,0,0">
+                                    <Button Content="Change folder..." Click="BtnPath" Margin="0,0,8,0" />
+                                    <Button Content="Open folder" Click="BtnOpenLogFolderClick" Margin="0,0,8,0" />
+                                    <Button Content="Delete market logs" Click="BtnClearLogsClick" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardHeader}" Text="General" />
+                                <CheckBox x:Name="cbStayOnTop" Content="Keep window on top (Ctrl+P)"
+                                          Checked="CbStayOnTopChanged" Unchecked="CbStayOnTopChanged" />
+                                <Grid Margin="0,4,0,0">
+                                    <CheckBox x:Name="btnUpdate" Content="Check for updates on startup"
+                                              Checked="BtnUpdateClick" Unchecked="BtnUpdateClick" />
+                                    <Button HorizontalAlignment="Right" Content="Check now" Click="BtnCheckNowClick" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Name="lblAppVersion" FontWeight="SemiBold" />
+                                    <TextBlock Style="{StaticResource Caption}" Text="Automatic margin calculator for EVE Online" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="Report a bug" Click="MiSubmitBugClick" Margin="0,0,8,0" />
+                                    <Button Content="About" Click="BtnAboutClick" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
-        <StatusBar Height="23" Name="sbMain" VerticalAlignment="Bottom">
-            <StatusBarItem HorizontalAlignment="Left">
-                <ToggleButton Height="17" Width="17" Name="btnStayOnTop" Content="Pin" FontSize="8"
-                      ToolTip="Make window stay on top" Click="BtnStayOnTopClick" />
-            </StatusBarItem>
 
-            <StatusBarItem HorizontalAlignment="Left">
-                <ToggleButton Height="17" Width="17" Name="btnUpdate" FontSize="15"
-                      ToolTip="Check for updates on startup" Click="BtnUpdateClick">
-                    <ToggleButton.Content>
-                        <TextBlock Margin="0, -12">⤦</TextBlock>
-                    </ToggleButton.Content>
-                </ToggleButton>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Left">
-                <Elinor:DropDownButton Height="17" Width="17" x:Name="btnBeta" FontSize="10" ToolTip="Beta options">
-                    <Elinor:DropDownButton.DropDown>
-                        <ContextMenu>
-                            <MenuItem Name="miSubmitBug" Header="Submit a bug" Click="MiSubmitBugClick">
-                                <MenuItem.Icon>
-                                    <Image Source="/Elinor;component/Images/bug.png" Height="16" Width="16" />
-                                </MenuItem.Icon>
-                            </MenuItem>
-                            <!--<MenuItem Name="miSubmitFeature" Header="Request a feature" Click="MiSubmitFeatureClick">
-                <MenuItem.Icon>
-                  <Image Source="/Elinor;component/Images/20_64_1.png" Height="16" Width="16" />
-                </MenuItem.Icon>
-              </MenuItem>-->
-                        </ContextMenu>
-                    </Elinor:DropDownButton.DropDown>
-                    <Elinor:DropDownButton.Content>
-                        <TextBlock Margin="0,-7">β</TextBlock>
-                    </Elinor:DropDownButton.Content>
-                </Elinor:DropDownButton>
-
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Left">
-                <Button Height="17" Width="17" Name="btnPath" FontSize="11" ToolTip="Change marketlog path"
-                Click="BtnPath">
-                    <Button.Content>
-                        <TextBlock Margin="0,-5">📂</TextBlock>
-                    </Button.Content>
-                </Button>
-            </StatusBarItem>
-            <StatusBarItem HorizontalAlignment="Left">
-                <Button Height="17" Width="17" Name="btnAbout" FontSize="11" ToolTip="About Elinor"
-                Click="BtnAboutClick">
-                    <Button.Content>
-                        <TextBlock Margin="0,-5">?</TextBlock>
-                    </Button.Content>
-                </Button>
-            </StatusBarItem>
-            <StatusBarItem HorizontalContentAlignment="Right">
-                <TextBlock Text="" Name="tbStatus" MouseLeftButtonUp="TbStatusMouseLeftButtonUp" Cursor="Hand"
-                   ToolTip="Click to delete logs" />
-            </StatusBarItem>
-        </StatusBar>
-        <ComboBox Height="23" HorizontalAlignment="Right" Margin="0,12,133,0" Name="cbProfiles" VerticalAlignment="Top"
-              Width="323" SelectionChanged="CbProfilesSelectionChanged" ItemsSource="{Binding}" />
-
-        <Button ToolTip="Create a new profile to store display and calculations settings" Content="New" Height="23"
-            HorizontalAlignment="Right" Margin="0,12,70,0" Name="btnNew" VerticalAlignment="Top" Width="51" Click="BtnNewClick" />
-        <Label Content="Profile" Height="28" HorizontalAlignment="Left" Margin="12,11,0,0" Name="label9"
-           VerticalAlignment="Top" />
-        <Button ToolTip="Deletes the currently active profile" Content="Delete" Height="23" Margin="0,12,12,0"
-            Name="btnDelete" VerticalAlignment="Top" Click="BtnDeleteClick" HorizontalAlignment="Right" Width="46" />
+        <!-- Status bar -->
+        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                Padding="16,6" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE8B7;" FontSize="12" Margin="0,0,8,0"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock x:Name="tbStatus" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

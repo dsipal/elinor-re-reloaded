@@ -1,4 +1,3 @@
-﻿using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -11,76 +10,51 @@ namespace Elinor
     /// </summary>
     public partial class ProfileNameWindow
     {
-        internal string ProfileName { get; private set; }
-        protected MainWindow mainWindow;
+        private readonly ProfileStore _store;
 
-        public ProfileNameWindow(MainWindow mainwindow)
+        internal ProfileNameWindow(ProfileStore store)
         {
             InitializeComponent();
-            this.mainWindow = mainwindow;
-
+            _store = store;
         }
+
+        internal string ProfileName { get; private set; } = "";
 
         private void BtnOkClick(object sender, RoutedEventArgs e)
         {
-            string result = "OK";
-            var profile = new Profile();
-            var invalidFileNameChars = Path.GetInvalidFileNameChars();
+            string name = tbName.Text.Trim();
+            if (name.Length == 0) return;
 
-            foreach (var invalid in invalidFileNameChars)
+            char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
+
+            if (name.IndexOfAny(invalidFileNameChars) >= 0 || name.EndsWith("."))
             {
-                if (tbName.Text.Contains(invalid.ToString(CultureInfo.InvariantCulture))) result = "INVALID";
+                string sInvalid = string.Join(" ", invalidFileNameChars.Where(c => !char.IsControl(c)));
+
+                MessageBox.Show(
+                    this,
+                    string.Format("Profile name may not contain\n{0}", sInvalid),
+                    "Invalid profile name",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
             }
 
-            string fName = string.Format("profiles\\{0}.dat", tbName.Text);
-
-            if (File.Exists(fName))
+            if (name == Profile.DefaultName || _store.Exists(name))
             {
-                result = "ALREADY_EXIST";
+                MessageBox.Show(
+                    this,
+                    "You must enter an unused profile name.",
+                    "Profile name already used",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                return;
             }
 
-            switch (result)
-            {
-                case "OK":
-
-                    profile.profileName = tbName.Text;
-                    mainWindow.cbProfiles.Items.Add(profile);
-                    mainWindow.cbProfiles.SelectedItem = profile;
-                    mainWindow.tcMain.SelectedIndex = 1;
-                    Profile.SaveSettings(profile);
-
-                    DialogResult = true;
-                    Close();
-
-                    break;
-
-                case "INVALID":
-
-                    var sInvalid = invalidFileNameChars.Where(invalidFileNameChar => !char.IsControl(invalidFileNameChar))
-                        .Aggregate("", (current, invalidFileNameChar) => current + (invalidFileNameChar + " "));
-
-                    MessageBox.Show(
-                        string.Format("Profile name may not contain\n{0}", sInvalid),
-                        "Invalid profile name",
-                        MessageBoxButton.OK, 
-                        MessageBoxImage.Warning
-                    );
-
-                    break;
-
-                case "ALREADY_EXIST":
-
-                    MessageBox.Show(
-                        "You must enter an unused profile name.",
-                        "Profile name already used",
-                        MessageBoxButton.OK, 
-                        MessageBoxImage.Warning
-                    );
-
-                    break;
-
-
-            }
+            ProfileName = name;
+            DialogResult = true;
         }
 
         private void BtnCancelClick(object sender, RoutedEventArgs e)
@@ -95,13 +69,13 @@ namespace Elinor
 
         private void TbNameTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            btnOk.IsEnabled = tbName.Text != string.Empty;
+            btnOk.IsEnabled = tbName.Text.Trim().Length != 0;
         }
 
         private void WindowKeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Escape) Close();
-            if(e.Key == Key.Enter) BtnOkClick(this, null);
+            if (e.Key == Key.Escape) Close();
+            if (e.Key == Key.Enter && btnOk.IsEnabled) BtnOkClick(this, new RoutedEventArgs());
         }
     }
 }

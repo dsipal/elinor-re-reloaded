@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Security;
 using System.Windows;
-using System.Windows.Forms;
-using MessageBox = System.Windows.MessageBox;
+using Microsoft.Win32;
 
 namespace Elinor
 {
@@ -12,52 +10,50 @@ namespace Elinor
     /// </summary>
     public partial class SelectLogPathWindow
     {
-
-        private string logdir;
+        private readonly string _logdir;
 
         public SelectLogPathWindow(string logdir)
         {
             InitializeComponent();
-            this.logdir = logdir;
+            _logdir = logdir;
             tbPath.Text = logdir;
         }
 
-        internal DirectoryInfo Logpath { get; private set; }
+        internal DirectoryInfo? Logpath { get; private set; }
 
         private void BtnFileSelectClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new FolderBrowserDialog();
-            dialog.SelectedPath = this.logdir;
-            
-            DialogResult result = dialog.ShowDialog();
-            if (result == System.Windows.Forms.DialogResult.OK)
+            var dialog = new OpenFolderDialog { Title = "Select your EVE 'Marketlogs' folder" };
+
+            // Start from the nearest folder that exists; the dialog rejects missing ones.
+            string? start = _logdir;
+            while (!string.IsNullOrEmpty(start) && !Directory.Exists(start))
+                start = Path.GetDirectoryName(start);
+            if (!string.IsNullOrEmpty(start)) dialog.InitialDirectory = start;
+
+            if (dialog.ShowDialog(this) == true)
             {
-                tbPath.Text = dialog.SelectedPath;
+                tbPath.Text = dialog.FolderName;
             }
         }
 
         private void BtnCancelClick(object sender, RoutedEventArgs e)
         {
-            Close();
+            DialogResult = false;
         }
 
         private void BtnOkClick(object sender, RoutedEventArgs e)
         {
             try
             {
-                Logpath = new DirectoryInfo(tbPath.Text);
+                Logpath = new DirectoryInfo(tbPath.Text.Trim());
                 DialogResult = true;
             }
-            catch (SecurityException)
+            catch (Exception ex) when (ex is ArgumentException || ex is PathTooLongException || ex is NotSupportedException || ex is System.Security.SecurityException)
             {
-                MessageBox.Show("You don't have access to that Folder");
+                MessageBox.Show(this, "That is not a valid folder path.", "Select EVE log path",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-            catch (Exception)
-            {
-                MessageBox.Show("Something went wrong.");
-            }
-
-            Close();
         }
     }
 }
