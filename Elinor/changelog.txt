@@ -1,4 +1,4 @@
-Elinor 1.13.0, 2026-09-28
+Elinor re-reloaded 1.0.0, 2026-09-28
 ----------------------
 - New Windows 11 (Fluent) look with light and dark mode; follows the Windows setting by default
 - New Settings tab: theme, market log folder, stay on top, update check, overlay opacity
@@ -6,7 +6,7 @@ Elinor 1.13.0, 2026-09-28
 - Configurable price step for auto copy: smart (EVE 4-significant-digit rule), 0.01 ISK or custom
 - Configurable trade hubs per profile, including citadels from the last export
 - Settings changes update the displayed numbers immediately
-- Moved to .NET 10; ships as a single portable exe (no installer, no .NET install needed)
+- Moved to .NET 10; ships as an installer or a single portable exe (no .NET install needed either way)
 - Fixed crash when another program holds the clipboard during auto copy
 - Fixed crash on malformed market log rows
 - Fixed freeze when a market log is deleted while it is being read or on profile switch

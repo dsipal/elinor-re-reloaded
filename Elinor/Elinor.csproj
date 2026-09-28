@@ -14,7 +14,7 @@
     <!-- WPF0001: Application.ThemeMode (built-in Fluent light/dark theme) is still flagged experimental -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
 
-    <Version>1.13.0</Version>
+    <Version>1.0.0</Version>
     <Product>Elinor</Product>
     <AssemblyTitle>Elinor reloaded</AssemblyTitle>
     <Description>Automatic margin calculator for EVE Online</Description>

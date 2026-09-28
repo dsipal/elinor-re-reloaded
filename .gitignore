@@ -45,3 +45,6 @@ Thumbs.db
 *.suo
 *.msi
 .vs/
+
+# Installer build output
+installer/Output/

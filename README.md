@@ -7,7 +7,9 @@ fees, profit and margin, and can copy an undercut price to the clipboard.
 - Per-profile skills, standings, broker fees, margins, order ranges, trade hubs and price step
 - Shortcuts: Ctrl+A toggles auto copy, Ctrl+P keeps the window on top, Esc leaves the overlay
 
-Downloads: https://github.com/dsipal/elinor-re-reloaded/releases (a single `Elinor.exe`, no install needed)
+Downloads: https://github.com/dsipal/elinor-re-reloaded/releases
+- `Elinor-Setup-x.y.z.exe`: installer (per-user, no admin needed; Start menu shortcut, uninstaller)
+- `Elinor.exe`: portable, just run it
 
 ## History
 A continuation of [Slivo-fr/elinor-reloaded](https://github.com/Slivo-fr/elinor-reloaded), which is no longer maintained,
@@ -29,7 +31,20 @@ Portable single-file exe (no .NET install needed to run it):
 dotnet publish Elinor -p:PublishProfile=win-x64
 ```
 
-Output: `Elinor/bin/publish/Elinor.exe`. CI (`.github/workflows/build.yml`) builds this on every push and attaches it to `v*` tag releases.
+Output: `Elinor/bin/publish/Elinor.exe`.
+
+Installer (needs [Inno Setup 6](https://jrsoftware.org/isinfo.php)), after publishing:
+
+```
+iscc /DAppVersion=1.0.0 installer\Elinor.iss
+```
+
+## Releasing
+
+Push a tag like `v1.0.1`. CI (`.github/workflows/build.yml`) builds the exe and installer with that version and
+publishes a GitHub release with both. To rebuild the assets of an existing tag, run the workflow manually
+(Actions > build > Run workflow) with the tag name. Bump `Elinor/currentVersion.xml` on master so the in-app
+update check sees the new version.
 
 ## Where Elinor keeps its data
 
