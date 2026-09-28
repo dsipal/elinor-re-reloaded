@@ -52,7 +52,7 @@ jobs:
           & $iscc /Q "/DAppVersion=$env:VERSION" installer\Elinor.iss
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: Elinor-${{ env.VERSION }}
           path: |
