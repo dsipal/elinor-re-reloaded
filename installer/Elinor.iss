@@ -5,6 +5,9 @@
 #ifndef AppVersion
   #define AppVersion "0.0.0"
 #endif
+; Must match App.AppUserModelId in Elinor/App.xaml.cs.
+#define AppUserModelId "dsipal.Elinor"
+
 #ifndef SourceExe
   #define SourceExe "..\Elinor\bin\publish\Elinor.exe"
 #endif
@@ -40,6 +43,10 @@ SolidCompression=yes
 OutputDir=Output
 OutputBaseFilename=Elinor-Setup-{#AppVersion}
 
+; Makes Explorer refresh at the end of setup. Without it the Start menu app list can take a
+; long time to notice the new shortcut.
+ChangesAssociations=yes
+
 ; Close a running Elinor during upgrades.
 CloseApplications=yes
 RestartApplications=no
@@ -51,8 +58,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#SourceExe}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Elinor"; Filename: "{app}\Elinor.exe"
-Name: "{autodesktop}\Elinor"; Filename: "{app}\Elinor.exe"; Tasks: desktopicon
+Name: "{autoprograms}\Elinor"; Filename: "{app}\Elinor.exe"; AppUserModelID: "{#AppUserModelId}"
+Name: "{autodesktop}\Elinor"; Filename: "{app}\Elinor.exe"; AppUserModelID: "{#AppUserModelId}"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\Elinor.exe"; Description: "{cm:LaunchProgram,Elinor}"; Flags: nowait postinstall skipifsilent

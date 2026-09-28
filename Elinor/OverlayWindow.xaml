@@ -59,10 +59,20 @@
                 </Button>
             </StackPanel>
 
-            <TextBlock Grid.Row="1" Text="Sell" Style="{StaticResource Label}" />
+            <StackPanel Grid.Row="1" x:Name="pnlSellMode" Orientation="Horizontal" Background="Transparent" Cursor="Hand"
+                        MouseLeftButtonUp="SellModeClick">
+                <TextBlock x:Name="lblSellMode" Text="Sell" Style="{StaticResource Label}" />
+                <TextBlock x:Name="icoSellCopy" Style="{StaticResource Glyph}" Text="&#xE8C8;" FontSize="12" Margin="6,0,0,0"
+                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Visibility="Collapsed" />
+            </StackPanel>
             <TextBlock Grid.Row="1" Grid.ColumnSpan="2" x:Name="lblSell" Text="-" Style="{StaticResource Price}"
                        MouseLeftButtonUp="LblSellClick" Margin="0,0,4,0" />
-            <TextBlock Grid.Row="2" Text="Buy" Style="{StaticResource Label}" />
+            <StackPanel Grid.Row="2" x:Name="pnlBuyMode" Orientation="Horizontal" Background="Transparent" Cursor="Hand"
+                        MouseLeftButtonUp="BuyModeClick">
+                <TextBlock x:Name="lblBuyMode" Text="Buy" Style="{StaticResource Label}" />
+                <TextBlock x:Name="icoBuyCopy" Style="{StaticResource Glyph}" Text="&#xE8C8;" FontSize="12" Margin="6,0,0,0"
+                           Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Visibility="Collapsed" />
+            </StackPanel>
             <TextBlock Grid.Row="2" Grid.ColumnSpan="2" x:Name="lblBuy" Text="-" Style="{StaticResource Price}"
                        MouseLeftButtonUp="LblBuyClick" Margin="0,0,4,0" />
 

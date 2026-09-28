@@ -382,16 +382,29 @@ namespace Elinor
             await ClipboardTools.TrySetPriceAsync(ClipboardTools.GetBuyPrice(_buy, profile));
         }
 
+        /// <summary>0 = auto copy off, 1 = sell price, -1 = buy price (same encoding as AppSettings.AutoCopy).</summary>
+        private int AutoCopyMode => cbAutoCopy.IsChecked != true ? 0 : rbBuy.IsChecked == true ? -1 : 1;
+
         private void CbAutoCopyChecked(object sender, RoutedEventArgs e)
         {
             gbAutocopy.IsEnabled = true;
             ClearCopyStatus();
+            _overlay?.SetAutoCopyMode(AutoCopyMode);
         }
 
         private void CbAutoCopyUnchecked(object sender, RoutedEventArgs e)
         {
             gbAutocopy.IsEnabled = false;
             ClearCopyStatus();
+            _overlay?.SetAutoCopyMode(AutoCopyMode);
+        }
+
+        /// <summary>From the overlay: turn auto copy on for the chosen price.</summary>
+        private void SetAutoCopyModeFromOverlay(int mode)
+        {
+            (mode < 0 ? rbBuy : rbSell).IsChecked = true;
+            cbAutoCopy.IsChecked = true;
+            _overlay?.SetAutoCopyMode(AutoCopyMode);
         }
 
         private void AutoCopy(object sender, ExecutedRoutedEventArgs e)
@@ -401,6 +414,8 @@ namespace Elinor
 
         private async void RbChecked(object sender, RoutedEventArgs e)
         {
+            _overlay?.SetAutoCopyMode(AutoCopyMode);
+
             // Also fires while settings are restored at startup; don't wipe the clipboard then.
             if (_lastSnapshot == null) return;
 
@@ -432,9 +447,11 @@ namespace Elinor
             _overlay.ExitRequested += () => Close();
             _overlay.SellClicked += async () => await CopySellAsync();
             _overlay.BuyClicked += async () => await CopyBuyAsync();
+            _overlay.AutoCopyModeRequested += SetAutoCopyModeFromOverlay;
             _overlay.Closed += OverlayClosed;
 
             UpdateOverlay();
+            _overlay.SetAutoCopyMode(AutoCopyMode);
             if (_copyStatusVisible) _overlay.SetCopyStatus(_copyStatus, true);
 
             _overlay.Show();

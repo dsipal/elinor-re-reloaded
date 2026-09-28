@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -10,7 +11,13 @@ namespace Elinor
     /// </summary>
     public partial class App
     {
+        /// <summary>Must match AppUserModelId in installer/Elinor.iss so taskbar pins stay linked to the Start menu shortcut.</summary>
+        internal const string AppUserModelId = "dsipal.Elinor";
+
         private bool _showingError;
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
+        private static extern void SetCurrentProcessExplicitAppUserModelID(string appId);
 
         /// <summary>Loaded once at startup, before any window, so the theme applies from the first frame.</summary>
         internal static AppSettings Settings { get; private set; } = new AppSettings();
@@ -22,6 +29,15 @@ namespace Elinor
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
             Log.Info("Elinor " + Updates.CurrentVersion + " starting on " + Environment.OSVersion);
+
+            try
+            {
+                SetCurrentProcessExplicitAppUserModelID(AppUserModelId);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Could not set AppUserModelID", ex);
+            }
 
             Settings = AppSettings.Load();
             ThemeManager.Apply(Settings.Theme);
